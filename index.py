@@ -2,264 +2,181 @@ import os
 import pdfplumber
 import chromadb
 import camelot
+import shutil
 from chromadb.utils import embedding_functions
 from app.config import Config
 
-print("Mulai proses indexing dokumen...")
 
-
-# -------------------------------------------------
-# INIT CHROMA DB
-# -------------------------------------------------
-client = chromadb.PersistentClient(
-    path=Config.VECTOR_DB
-)
-
-
-embedding = embedding_functions.OpenAIEmbeddingFunction(
-    api_key=Config.OPENAI_API_KEY,
-    model_name=Config.EMBEDDING_MODEL
-)
-
-collection = client.get_or_create_collection(
-    name="rag_cache",
-    embedding_function=embedding
-)
-
-docs_folder = Config.DOCS_FOLDER
-
-
-# -------------------------------------------------
-# CHUNKING
-# -------------------------------------------------
 def chunk_text(text, chunk_size=1200, overlap=150):
-
     paragraphs = text.split("\n")
-
     chunks = []
     current_chunk = ""
 
     for p in paragraphs:
-
         p = p.strip()
-
         if not p:
             continue
 
         if len(current_chunk) + len(p) < chunk_size:
-
             current_chunk += p + "\n"
-
         else:
-
             chunks.append(current_chunk.strip())
-
-            # overlap
             current_chunk = current_chunk[-overlap:] + "\n" + p + "\n"
 
     if current_chunk:
         chunks.append(current_chunk.strip())
-
     return chunks
 
 
-# -------------------------------------------------
-# CLEAN TABLE ROW
-# -------------------------------------------------
 def clean_row(row):
-
     cells = []
-
     for cell in row:
-
         if not cell:
             continue
-
         cell = str(cell).replace("\n", " ").strip()
-
         if cell:
             cells.append(cell)
-
-    if not cells:
-        return None
-
-    return " | ".join(cells)
+    return " | ".join(cells) if cells else None
 
 
-# -------------------------------------------------
-# MERGE MULTILINE ROWS
-# -------------------------------------------------
 def merge_rows(rows):
-
     merged = []
     buffer = ""
-
     for row in rows:
-
         if "|" not in row:
-
             buffer += " " + row
             continue
-
         if buffer:
-
             row = buffer + " " + row
             buffer = ""
-
         merged.append(row)
-
     return merged
 
 
-# -------------------------------------------------
-# CAMELot TABLE EXTRACTION
-# -------------------------------------------------
 def extract_tables_camelot(path):
-
     table_rows = []
-
     try:
-
-        tables = camelot.read_pdf(
-            path,
-            pages="all",
-            flavor="stream"
-        )
-
+        tables = camelot.read_pdf(path, pages="all", flavor="stream")
         for table in tables:
-
             df = table.df
-            rows = []
-
-            for _, row in df.iterrows():
-
-                clean = clean_row(row)
-
-                if clean:
-                    rows.append(clean)
-
+            rows = [clean_row(row) for _, row in df.iterrows() if clean_row(row)]
             rows = merge_rows(rows)
-
             table_rows.extend(rows)
-
     except Exception as e:
-
         print("Camelot gagal:", e)
-
     return table_rows
 
 
-# -------------------------------------------------
-# TABLE EXTRACTION PIPELINE
-# -------------------------------------------------
 def extract_tables_as_block(pdf_document, file_path):
-
     table_rows = extract_tables_camelot(file_path)
 
-    # Fallback ke pdfplumber jika camelot kosong
+    # Fallback ke pdfplumber
     if not table_rows:
-
-        for page_num, page in enumerate(pdf_document.pages, 1):
-
+        for page in pdf_document.pages:
             tables = page.extract_tables()
-
-            if not tables:
-                continue
-
+            if not tables: continue
             for table in tables:
-
                 for row in table:
-
                     clean = clean_row(row)
-
-                    if clean:
-                        table_rows.append(clean)
+                    if clean: table_rows.append(clean)
 
     if not table_rows:
         return None
 
-    # Gabungkan semua row menjadi 1 block
-    table_block = "\n".join(table_rows)
-
-    return f"\n\nTABEL DATA:\n{table_block}\n\n"
+    return f"\n\nTABEL DATA:\n" + "\n".join(table_rows) + "\n\n"
 
 
 # -------------------------------------------------
-# INDEX DOCUMENTS
+# FUNGSI UTAMA (MAIN ENTRY POINT)
 # -------------------------------------------------
-doc_id = 0
-total_chunks = 0
 
-for file in os.listdir(docs_folder):
+def run_indexing():
+    print("Cleaning...")
+    if os.path.exists(Config.VECTOR_DB):
+        try:
+            shutil.rmtree(Config.VECTOR_DB)
+            print("Success.")
+        except Exception as e:
+            print(f"Error: {e}")
 
-    if not file.endswith(".pdf"):
-        continue
+    print("Start Indexing...")
 
-    path = os.path.join(docs_folder, file)
+    # Init Client
+    client = chromadb.PersistentClient(path=Config.VECTOR_DB)
 
-    print(f"\nProcessing: {file}")
+    # Hapus collection lama jika ada (opsional, untuk clean build)
+    try:
+        client.delete_collection("rag_cache")
+        print("Collection lama dihapus")
+    except:
+        print("Tidak ada collection lama untuk dihapus")
 
-    with pdfplumber.open(path) as pdf:
+    embedding = embedding_functions.OpenAIEmbeddingFunction(
+        api_key=Config.OPENAI_API_KEY,
+        model_name=Config.EMBEDDING_MODEL
+    )
 
-        full_text = ""
+    collection = client.get_or_create_collection(
+        name="rag_cache",
+        embedding_function=embedding
+    )
 
-        for page in pdf.pages:
+    docs_folder = Config.DOCS_FOLDER
+    doc_id = 0
+    total_chunks = 0
 
-            text = page.extract_text()
+    if not os.path.exists(docs_folder):
+        print(f"Error: Folder {docs_folder} tidak ditemukan!")
+        return
 
-            if text:
-                full_text += text + "\n"
+    for file in os.listdir(docs_folder):
+        if not file.endswith(".pdf"):
+            continue
 
-        # Extract table block
-        table_block = extract_tables_as_block(pdf, path)
+        path = os.path.join(docs_folder, file)
+        print(f"\nProcessing: {file}")
 
-    if not full_text.strip():
+        try:
+            with pdfplumber.open(path) as pdf:
+                full_text = ""
+                for page in pdf.pages:
+                    text = page.extract_text()
+                    if text:
+                        full_text += text + "\n"
 
-        print("Tidak ada teks ditemukan di PDF")
-        continue
+                table_block = extract_tables_as_block(pdf, path)
 
-    # Tambahkan tabel ke teks utama
-    if table_block:
-        full_text += table_block
+            if not full_text.strip():
+                print(f"Skipping {file}: Tidak ada teks.")
+                continue
 
-    # Chunking
-    chunks = chunk_text(full_text)
+            if table_block:
+                full_text += table_block
 
-    print(f"   ➜ {len(chunks)} chunks dibuat")
+            chunks = chunk_text(full_text)
+            print(f"   ➜ {len(chunks)} chunks dibuat")
 
-    # -------------------------------------------------
-    # INSERT TO CHROMA
-    # -------------------------------------------------
-    batch_size = 100
+            # Insert ke Chroma
+            batch_size = 100
+            for i in range(0, len(chunks), batch_size):
+                batch_chunks = chunks[i:i + batch_size]
+                # Gunakan nama file agar ID unik dan tidak tertukar antar dokumen
+                batch_ids = [f"{file}_{doc_id + j}" for j in range(len(batch_chunks))]
 
-    for i in range(0, len(chunks), batch_size):
+                collection.add(
+                    documents=batch_chunks,
+                    metadatas=[{"source": file} for _ in batch_chunks],
+                    ids=batch_ids
+                )
+                doc_id += len(batch_chunks)
+                total_chunks += len(batch_chunks)
 
-        batch_chunks = chunks[i:i + batch_size]
+        except Exception as e:
+            print(f"Gagal memproses {file}: {e}")
 
-        batch_ids = [
-            f"doc_{doc_id + j}"
-            for j in range(len(batch_chunks))
-        ]
-
-        collection.add(
-            documents=batch_chunks,
-            metadatas=[{"source": file} for _ in batch_chunks],
-            ids=batch_ids
-        )
-
-        doc_id += len(batch_chunks)
-        total_chunks += len(batch_chunks)
-
-        print(f"   ➜ Batch {i // batch_size + 1}: {len(batch_chunks)} chunks ditambahkan")
+    print(f"\nIndexing selesai. Total chunks: {total_chunks}")
+    print(f"Verifikasi database: {collection.count()} data tersimpan.")
 
 
-# -------------------------------------------------
-# FINAL REPORT
-# -------------------------------------------------
-print("\nIndexing selesai")
-print("Total chunks:", total_chunks)
-print("Folder docs:", docs_folder)
-
-count = collection.count()
-
-print(f"Verifikasi - Total chunks di DB: {count}")
+if __name__ == "__main__":
+    run_indexing()

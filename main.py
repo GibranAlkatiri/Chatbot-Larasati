@@ -1,12 +1,12 @@
 import uvicorn
+import os
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from index import run_indexing
 from pydantic import BaseModel
 from typing import Optional
-import os
-import subprocess
 
 from app.engine import RAGEngine
 
@@ -22,34 +22,24 @@ engine = RAGEngine()
 def auto_index():
     try:
         count = engine.collection.count()
-        print(f"[Startup] Total chunks: {count}")
+        print(f"[Startup] Total chunks terdeteksi: {count}")
 
         if count == 0:
             print("[Startup] Collection kosong, mulai indexing...")
-
-            result = subprocess.run(
-                ["python", "index.py"],
-                capture_output=True,
-                text=True,
-                cwd=os.getcwd()
-            )
-
-            print(result.stdout)
-            if result.stderr:
-                print("Index Error:", result.stderr)
+            run_indexing()
 
             engine.collection = engine.client.get_or_create_collection(
                 name="rag_cache",
                 embedding_function=engine.embedding
             )
 
-            print("[Startup] Indexing selesai")
+            print(f"[Startup] Indexing selesai. Sekarang ada {engine.collection.count()} chunks.")
 
         else:
-            print("[Startup] Collection sudah ada, skip indexing")
+            print("[Startup] Collection sudah ada, skip indexing.")
 
     except Exception as e:
-        print(f"[Startup Error] {e}")
+        print(f"[Startup Error] Terjadi kesalahan: {e}")
 
 
 class ChatRequest(BaseModel):
@@ -70,54 +60,47 @@ async def serve_home(request: Request):
 
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
-    # Validasi
+    """Upload file PDF baru dan jalankan ulang proses indexing."""
     if not file.filename.endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Hanya file PDF yang diperbolehkan")
 
+    os.makedirs("docs", exist_ok=True)
     file_path = f"docs/{file.filename}"
 
     # Simpan file
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
-    # Panggil script indexing
     try:
-        result = subprocess.run(
-            ["python", "index.py"],
-            capture_output=True,
-            text=True,
-            cwd=os.getcwd()
+        run_indexing()
+
+        engine.collection = engine.client.get_or_create_collection(
+            name="rag_cache",
+            embedding_function=engine.embedding
         )
-        print(result.stdout)
-        if result.stderr:
-            print("Error:", result.stderr)
     except Exception as e:
-        print(f"Error running index.py: {e}")
+        print(f"Error saat indexing file baru: {e}")
+        raise HTTPException(status_code=500, detail="Gagal mengindeks file baru")
 
     return {
         "status": "success",
-        "message": "File uploaded & indexed"
+        "message": f"File {file.filename} uploaded & indexed"
     }
 
 
 @app.post("/reindex")
 def reindex_docs():
-    """Rebuild index dengan menjalankan index.py"""
+    """Membangun ulang seluruh index dari folder docs."""
     try:
-        result = subprocess.run(
-            ["python", "index.py"],
-            capture_output=True,
-            text=True,
-            cwd=os.getcwd()
+        run_indexing()
+        # Refresh database di memory
+        engine.collection = engine.client.get_or_create_collection(
+            name="rag_cache",
+            embedding_function=engine.embedding
         )
-        print(result.stdout)
-        if result.stderr:
-            print("Error:", result.stderr)
-
         return {
             "status": "success",
-            "message": "Index berhasil dibangun ulang",
-            "output": result.stdout
+            "message": "Reindex successfully"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -152,5 +135,5 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True
+        reload=False
     )
