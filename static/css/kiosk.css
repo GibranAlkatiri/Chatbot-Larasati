@@ -51,7 +51,7 @@ body {
    ========================================= */
 .kiosk-header {
   width: 100%;
-  height: var(--header-height); /* 80px */
+  height: var(--header-height);
   background-color: transparent;
   display: flex;
   align-items: center;
@@ -92,6 +92,7 @@ body {
   gap: 20px;
 }
 
+/* --- Toggle Suara --- */
 .voice-toggle-wrapper {
   display: flex;
   align-items: center;
@@ -133,7 +134,7 @@ body {
   border-radius: 34px;
 }
 
-.slider:before {
+.slider::before {
   position: absolute;
   content: "";
   height: 18px;
@@ -148,11 +149,12 @@ body {
 input:checked + .slider {
   background-color: #00ff88;
 }
-input:checked + .slider:before {
+
+input:checked + .slider::before {
   transform: translateX(20px);
 }
 
-/* Status Pill */
+/* --- Status Pill --- */
 .status-pill {
   background: rgba(255, 255, 255, 0.15);
   padding: 6px 12px;
@@ -173,7 +175,7 @@ input:checked + .slider:before {
   box-shadow: 0 0 8px #00ff88;
 }
 
-/* Lang Toggle */
+/* --- Lang Toggle --- */
 .lang-toggle {
   display: flex;
   background: rgba(0, 0, 0, 0.2);
@@ -196,6 +198,9 @@ input:checked + .slider:before {
   color: var(--primary-green);
 }
 
+/* =========================================
+   4. MAIN WRAPPER
+   ========================================= */
 .kiosk-main {
   flex: 1;
   min-height: 0;
@@ -209,6 +214,9 @@ input:checked + .slider:before {
   justify-content: space-between;
 }
 
+/* =========================================
+   5. AVATAR AREA
+   ========================================= */
 .avatar-area {
   width: 35%;
   height: 100%;
@@ -248,29 +256,29 @@ input:checked + .slider:before {
   background: linear-gradient(to bottom, transparent, var(--bg-gradient-end));
 }
 
+/* =========================================
+   6. CHAT OVERLAY
+   ========================================= */
 .chat-overlay {
   flex: 1;
   min-height: 0;
   max-width: 1200px;
-
   background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.6);
-
   border-radius: var(--border-radius-lg);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-
   display: flex;
   flex-direction: column;
   overflow: hidden;
   margin-bottom: 0;
   margin-right: 20px;
-
   position: relative;
   z-index: 20;
 }
 
+/* --- Chat Bubble Area --- */
 .chat-bubble-area {
   flex: 1;
   overflow-y: auto;
@@ -329,6 +337,7 @@ input:checked + .slider:before {
   display: none;
 }
 
+/* --- Input Bar --- */
 .input-bar {
   padding: 20px 30px;
   background: rgba(255, 255, 255, 0.4);
@@ -397,7 +406,9 @@ input:checked + .slider:before {
   transform: rotate(0deg) scale(1.1);
 }
 
-/* ==================== SESSION TIMER (MODERN) ==================== */
+/* =========================================
+   7. SESSION TIMER
+   ========================================= */
 .session-timer {
   position: fixed;
   bottom: 24px;
@@ -423,7 +434,6 @@ input:checked + .slider:before {
   transform: translateY(20px) scale(0.9);
 }
 
-/* Show state */
 .session-timer.show {
   opacity: 1;
   filter: blur(0);
@@ -445,10 +455,10 @@ input:checked + .slider:before {
 }
 
 .timer-count {
-  font-family: 'Monaco', 'Consolas', monospace;
+  font-family: "Monaco", "Consolas", monospace;
   font-size: 1.1rem;
   font-weight: 800;
-  color: #3b82f6; /* Warna biru aksen */
+  color: #3b82f6;
   background: rgba(59, 130, 246, 0.1);
   padding: 2px 8px;
   border-radius: 6px;
@@ -467,12 +477,20 @@ input:checked + .slider:before {
 }
 
 @keyframes timerSoftPulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
-/* ==================== PULSE ANIMATION FOR MIC ==================== */
+/* =========================================
+   8. PULSE ANIMATION FOR MIC
+   ========================================= */
 .pulse {
   animation: mic-pulse 1.5s infinite;
 }
