@@ -15,12 +15,6 @@ client = chromadb.PersistentClient(
     path=Config.VECTOR_DB
 )
 
-try:
-    client.delete_collection("rag_cache")
-    print("Collection lama dihapus")
-except:
-    print("Tidak ada collection lama")
-
 
 embedding = embedding_functions.OpenAIEmbeddingFunction(
     api_key=Config.OPENAI_API_KEY,

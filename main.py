@@ -38,6 +38,11 @@ def auto_index():
             if result.stderr:
                 print("Index Error:", result.stderr)
 
+            engine.collection = engine.client.get_or_create_collection(
+                name="rag_cache",
+                embedding_function=engine.embedding
+            )
+
             print("[Startup] Indexing selesai")
 
         else:
