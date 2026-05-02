@@ -22,7 +22,7 @@
       <header class="kiosk-header">
         <div class="header-left">
           <div class="header-logo">
-            <img src="../static/img/logo-malut.png" alt="Logo-province" />
+            <img src="{{ url_for('static', path='img/logo-malut.png') }}" alt="Logo" />
           </div>
 
           <div>
@@ -58,7 +58,7 @@
         <!-- AVATAR -->
         <div class="avatar-area">
           <div class="avatar-wrapper">
-            <img src="../static/img/AI-Generated.png" alt="LARASATI AI" />
+            <img src="{{ url_for('static', path='img/AI-Generated.png') }}" alt="Avatar" />
           </div>
         </div>
 
