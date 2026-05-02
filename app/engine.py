@@ -255,7 +255,7 @@ class RAGEngine:
 
         # 3 Adaptive Rerank
         chunks = self.adaptive_rerank(route, question, chunks)
-        print(f"After rerank: {len(chunks)} chunks")
+        print(f"Final Chunks Used: {len(chunks)}")
 
         # 4 Build Context
         context = self.build_context(chunks)

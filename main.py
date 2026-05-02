@@ -50,11 +50,9 @@ class ChatRequest(BaseModel):
 @app.get("/", response_class=HTMLResponse)
 async def serve_home(request: Request):
     return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "province": "Maluku Utara"
-        }
+        request=request,
+        name="index.html",
+        context={"province": "Maluku Utara"}
     )
 
 

@@ -2,7 +2,6 @@ import os
 import pdfplumber
 import chromadb
 import camelot
-import shutil
 from chromadb.utils import embedding_functions
 from app.config import Config
 
