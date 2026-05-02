@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <title>
+      LARASATI - Layanan Asisten Administrasi Sistem Terintegrasi {{ province }}
+    </title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', path='css/kiosk.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', path='css/media.css') }}"
+    />
+  </head>
+
+  <body>
+    <div class="kiosk-root">
+      <!-- ================= HEADER ================= -->
+      <header class="kiosk-header">
+        <div class="header-left">
+          <div class="header-logo">
+            <img src="../static/img/logo-malut.png" alt="Logo-province" />
+          </div>
+
+          <div>
+            <div class="header-text-title">
+              LARASATI - Asisten AI {{ province }}
+            </div>
+            <div class="header-text-subtitle">
+              Layanan Asisten Administrasi Sistem Terintegrasi {{ province }}
+            </div>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="voice-toggle-wrapper">
+            <span class="toggle-label">Suara Larasati</span>
+            <label class="switch">
+              <input type="checkbox" id="voiceToggle" checked />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div class="status-pill">
+            <span class="status-dot"></span> Aktif · Dokumen + Web
+          </div>
+          <div class="lang-toggle">
+            <button class="active">ID</button>
+            <button>EN</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- ================= MAIN ================= -->
+      <main class="kiosk-main">
+        <!-- AVATAR -->
+        <div class="avatar-area">
+          <div class="avatar-wrapper">
+            <img src="../static/img/AI-Generated.png" alt="LARASATI AI" />
+          </div>
+        </div>
+
+        <!-- CHAT -->
+        <div class="chat-overlay">
+          <div class="chat-bubble-area" id="chatMessages">
+            <div class="message bot" id="welcomeMessage">
+              Halo! Saya LARASATI, Asisten AI pemerintah provinsi {{ province
+              }}. Silakan ajukan pertanyaan terkait administrasi, kepegawaian,
+              dan layanan institusional untuk memperoleh panduan yang akurat dan
+              terpercaya. Kamu bisa menggunakan teks maupun suara 🎤.
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="speakingStatus">LARASATI sedang berbicara...</div>
+
+          <!-- INPUT -->
+          <div class="input-bar">
+            <div class="pill-input">
+              <input id="userInput" placeholder="Ketik pertanyaan..." />
+            </div>
+            <button id="dynamicBtn" class="icon-btn">🎤</button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ================= SESSION TIMER ================= -->
+    <div id="sessionTimer" class="session-timer hidden">
+      <div class="timer-content">
+        <div class="timer-label">Session akan reset dalam</div>
+
+        <div id="timerCountdown" class="timer-count">02:00</div>
+      </div>
+    </div>
+
+    <script
+      type="module"
+      src="{{ url_for('static', path='js/main.js') }}"
+    ></script>
+  </body>
+</html>

@@ -1,0 +1,115 @@
+@media screen and (max-width: 1024px) {
+  .header-text-title {
+    font-size: 1rem;
+  }
+  .header-text-subtitle {
+    font-size: 0.75rem;
+  }
+  .kiosk-header {
+    padding: 0 20px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .kiosk-header {
+    height: auto;
+    min-height: 80px;
+    flex-direction: column; /* Susun atas-bawah */
+    gap: 12px;
+    padding: 15px;
+    align-items: flex-start; /* Rata kiri */
+  }
+
+  .header-left {
+    width: 100%;
+    gap: 10px;
+  }
+
+  .header-logo img {
+    height: 40px; /* Logo lebih kecil */
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: space-between; /* Sebar elemen kanan */
+    gap: 10px;
+  }
+
+  .status-pill {
+    display: none;
+  }
+
+  .voice-toggle-wrapper {
+    margin-right: 0;
+    padding: 4px 10px;
+  }
+
+  .toggle-label {
+    font-size: 0.8rem;
+  }
+
+  .kiosk-main {
+    flex-direction: column; /* Susun vertikal */
+    padding: 0; /* Hilangkan padding agar full screen */
+    height: calc(100vh - 120px); /* Sesuaikan sisa tinggi setelah header baru */
+  }
+
+  /* 3. AVATAR JADI BACKGROUND (DI BELAKANG CHAT) */
+  .avatar-area {
+    position: absolute;
+    bottom: 0;
+    left: -20px;
+    width: 60%;
+    height: 55%; /* Sedikit lebih tinggi di HP */
+    align-items: flex-end; /* Pastikan nempel bawah */
+    justify-content: flex-start; /* Rata kiri */
+    z-index: 0;
+  }
+
+  .avatar-wrapper {
+    height: 100%; /* Mengikuti tinggi area mobile */
+    width: 100%;
+    justify-content: center;
+  }
+
+  .chat-overlay {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    margin: 0; /* Hapus margin kanan/bawah */
+    border-radius: 24px 24px 0 0; /* Round cuma di atas */
+
+    /* Background lebih solid agar tulisan terbaca di atas avatar */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 2; /* Di atas avatar */
+    border: none;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .chat-bubble-area {
+    padding: 20px 15px; /* Padding chat lebih kecil */
+  }
+
+  .message {
+    max-width: 85%; /* Bubble lebih lebar di HP */
+    font-size: 0.95rem;
+  }
+
+  /* 5. INPUT BAR */
+  .input-bar {
+    padding: 15px;
+    min-height: 80px;
+    background: white; /* Background putih solid di HP */
+  }
+
+  .pill-input {
+    height: 48px; /* Sedikit lebih kecil */
+  }
+
+  #dynamicBtn {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+  }
+}
