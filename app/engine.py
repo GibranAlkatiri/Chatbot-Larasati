@@ -3,7 +3,6 @@ import chromadb
 import cohere
 from chromadb.utils import embedding_functions
 from app.config import Config
-from sentence_transformers import CrossEncoder
 
 
 class RAGEngine:
@@ -29,16 +28,6 @@ class RAGEngine:
 
         print(f"Collection ready: {self.collection.count()} chunks")
 
-        try:
-            self.minilm_reranker = CrossEncoder(
-                Config.RERANK_MODELS["medium"]
-            )
-            print("MiniLM reranker loaded")
-        except Exception as e:
-            print("MiniLM reranker gagal load:", e)
-            self.minilm_reranker = None
-
-            # Cohere untuk complex question
         try:
             self.cohere = cohere.Client(
                 Config.COHERE_API_KEY
@@ -81,18 +70,6 @@ class RAGEngine:
             })
 
         return chunks
-
-    def rerank_minilm(self, query, chunks, top_k=5):
-
-        if not self.minilm_reranker or not chunks:
-            return chunks
-
-        pairs = [(query, c["text"]) for c in chunks]
-        scores = self.minilm_reranker.predict(pairs)
-        ranked = list(zip(chunks, scores))
-        ranked.sort(key=lambda x: x[1], reverse=True)
-
-        return [c for c, _ in ranked[:top_k]]
 
     def rerank_cohere(self, query, chunks, top_k=5):
 
@@ -211,7 +188,7 @@ class RAGEngine:
         # MEDIUM → MiniLM
         if route == "medium":
             print("MiniLM rerank")
-            return self.rerank_minilm(query, chunks)
+            return self.rerank_cohere(query, chunks)
 
         # COMPLEX → Cohere
         if route == "complex":
