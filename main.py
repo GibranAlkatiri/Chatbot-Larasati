@@ -1,4 +1,5 @@
 import uvicorn
+import mimetypes
 import os
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.staticfiles import StaticFiles
@@ -11,6 +12,16 @@ from typing import Optional
 from app.engine import RAGEngine
 
 app = FastAPI()
+
+
+@app.middleware("http")
+async def set_secure_scheme(request: Request, call_next):
+    request.scope["scheme"] = "https"
+    response = await call_next(request)
+    return response
+
+mimetypes.add_type('text/css', '.css')
+mimetypes.add_type('application/javascript', '.js')
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
