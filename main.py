@@ -18,6 +18,35 @@ templates = Jinja2Templates(directory="templates")
 engine = RAGEngine()
 
 
+@app.on_event("startup")
+def auto_index():
+    try:
+        count = engine.collection.count()
+        print(f"[Startup] Total chunks: {count}")
+
+        if count == 0:
+            print("[Startup] Collection kosong, mulai indexing...")
+
+            result = subprocess.run(
+                ["python", "index.py"],
+                capture_output=True,
+                text=True,
+                cwd=os.getcwd()
+            )
+
+            print(result.stdout)
+            if result.stderr:
+                print("Index Error:", result.stderr)
+
+            print("[Startup] Indexing selesai")
+
+        else:
+            print("[Startup] Collection sudah ada, skip indexing")
+
+    except Exception as e:
+        print(f"[Startup Error] {e}")
+
+
 class ChatRequest(BaseModel):
     question: str
     session_id: Optional[str] = "default"
