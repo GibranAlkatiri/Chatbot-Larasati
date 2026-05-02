@@ -1,104 +1,64 @@
 export function initIdleTimer({
-  idleLimit = 2 * 60 * 1000,
+  idleLimit = 5 * 60 * 1000,
+  warningPeriod = 60 * 1000,
   timerElement,
   countdownElement,
   onTimeout,
 }) {
-  let idleTimer = null;
-  let countdownInterval = null;
+  let endTime = 0;
+  let mainInterval = null;
 
-  // ==========================
-  // FORMAT TIME
-  // ==========================
-  function formatTime(seconds) {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-
+  function formatTime(ms) {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
     return `${m}:${s.toString().padStart(2, "0")}`;
   }
 
-  // ==========================
-  // SHOW COUNTDOWN
-  // ==========================
-  function showCountdown(seconds = 60) {
-    if (!timerElement || !countdownElement) return;
+  function update() {
+    const now = Date.now();
+    const timeLeft = endTime - now;
 
-    timerElement.classList.remove("hidden");
-    timerElement.classList.add("show");
-    timerElement.classList.remove("warning");
-
-    let remaining = seconds;
-
-    countdownElement.textContent = formatTime(remaining);
-
-    clearInterval(countdownInterval);
-
-    countdownInterval = setInterval(() => {
-      remaining--;
-
-      countdownElement.textContent = formatTime(remaining);
-
-      if (remaining <= 10) {
-        timerElement.classList.add("warning");
+    // Tampilkan timer hanya saat memasuki masa warning
+    if (timeLeft <= warningPeriod && timeLeft > 0) {
+      if (timerElement.classList.contains("hidden")) {
+        timerElement.classList.remove("hidden");
+        timerElement.classList.add("fade-in");
       }
 
-      if (remaining <= 0) {
-        clearInterval(countdownInterval);
-        hideCountdown();
+      countdownElement.textContent = formatTime(timeLeft);
+
+      if (timeLeft <= 10000) {
+        timerElement.classList.add("warning-pulse");
       }
-    }, 1000);
+    } else if (timeLeft > warningPeriod) {
+      timerElement.classList.add("hidden");
+      timerElement.classList.remove("warning-pulse");
+    }
+
+    if (timeLeft <= 0) {
+      stop();
+      if (onTimeout) onTimeout();
+    }
   }
 
-  // ==========================
-  // HIDE COUNTDOWN
-  // ==========================
-  function hideCountdown() {
-    if (!timerElement) return;
-
-    timerElement.classList.remove("show");
-    timerElement.classList.add("hidden");
-    timerElement.classList.remove("warning");
-
-    clearInterval(countdownInterval);
-    countdownInterval = null;
-  }
-
-  // ==========================
-  // RESET IDLE TIMER
-  // ==========================
   function resetIdleTimer() {
-    clearTimeout(idleTimer);
-
-    hideCountdown();
-
-    idleTimer = setTimeout(() => {
-      if (onTimeout) {
-        onTimeout();
-      }
-    }, idleLimit);
-
-    // countdown 60 detik sebelum reset
-    setTimeout(() => {
-      showCountdown(60);
-    }, idleLimit - 60000);
+    endTime = Date.now() + idleLimit;
+    if (!mainInterval) {
+      mainInterval = setInterval(update, 1000);
+    }
   }
 
-  // ==========================
-  // SETUP IDLE DETECTION
-  // ==========================
+  function stop() {
+    clearInterval(mainInterval);
+    mainInterval = null;
+  }
+
   function setupIdleDetection() {
     const events = ["mousedown", "keypress", "scroll", "touchstart", "click"];
-
-    events.forEach((e) => {
-      document.addEventListener(e, resetIdleTimer);
-    });
-
+    events.forEach((e) => document.addEventListener(e, resetIdleTimer));
     resetIdleTimer();
   }
 
-  return {
-    resetIdleTimer,
-    setupIdleDetection,
-    hideCountdown,
-  };
+  return { setupIdleDetection, resetIdleTimer };
 }

@@ -1,38 +1,43 @@
 @media screen and (max-width: 1024px) {
   .header-text-title {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
   .header-text-subtitle {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+    opacity: 0.8;
   }
   .kiosk-header {
-    padding: 0 20px;
+    padding: 0 24px;
   }
 }
 
 @media screen and (max-width: 768px) {
+
+  /* 1. HEADER OPTIMIZATION */
   .kiosk-header {
     height: auto;
-    min-height: 80px;
-    flex-direction: column; /* Susun atas-bawah */
+    min-height: 90px;
+    flex-direction: column;
     gap: 12px;
     padding: 15px;
-    align-items: flex-start; /* Rata kiri */
+    align-items: flex-start;
   }
 
   .header-left {
     width: 100%;
-    gap: 10px;
+    gap: 12px;
   }
 
   .header-logo img {
-    height: 40px; /* Logo lebih kecil */
+    height: 38px; /* Ukuran lebih proporsional di HP */
   }
 
   .header-right {
     width: 100%;
-    justify-content: space-between; /* Sebar elemen kanan */
-    gap: 10px;
+    justify-content: space-between;
+    gap: 8px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    padding-top: 10px;
   }
 
   .status-pill {
@@ -41,75 +46,118 @@
 
   .voice-toggle-wrapper {
     margin-right: 0;
-    padding: 4px 10px;
+    padding: 4px 8px;
   }
 
   .toggle-label {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
 
+  /* 2. MAIN LAYOUT & HEIGHT */
   .kiosk-main {
-    flex-direction: column; /* Susun vertikal */
-    padding: 0; /* Hilangkan padding agar full screen */
-    height: calc(100vh - 120px); /* Sesuaikan sisa tinggi setelah header baru */
+    flex-direction: column;
+    padding: 0;
+    /* dvh (dynamic view height) mencegah masalah bar browser di mobile */
+    height: calc(100dvh - 150px);
+    position: relative;
+    overflow: hidden;
   }
 
-  /* 3. AVATAR JADI BACKGROUND (DI BELAKANG CHAT) */
+  /* 3. AVATAR AS BACKGROUND (DI BELAKANG CHAT) */
   .avatar-area {
     position: absolute;
     bottom: 0;
-    left: -20px;
-    width: 60%;
-    height: 55%; /* Sedikit lebih tinggi di HP */
-    align-items: flex-end; /* Pastikan nempel bawah */
-    justify-content: flex-start; /* Rata kiri */
-    z-index: 0;
+    left: -10%; /* Sedikit keluar layar agar natural */
+    width: 70%;
+    height: 60%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    z-index: 1; /* Di belakang chat-overlay */
+    pointer-events: none; /* Agar tidak mengganggu klik chat */
   }
 
   .avatar-wrapper {
-    height: 100%; /* Mengikuti tinggi area mobile */
+    height: 100%;
     width: 100%;
-    justify-content: center;
+    display: flex;
+    justify-content: flex-start;
   }
 
+  .avatar-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Karakter AI tidak akan gepeng */
+    object-position: bottom left; /* Menempel di bawah layar */
+    filter: drop-shadow(0 0 10px rgba(0,0,0,0.1));
+  }
+
+  /* 4. CHAT OVERLAY (GLASSMORPHISM) */
   .chat-overlay {
     width: 100%;
     max-width: 100%;
     height: 100%;
-    margin: 0; /* Hapus margin kanan/bawah */
-    border-radius: 24px 24px 0 0; /* Round cuma di atas */
-
-    /* Background lebih solid agar tulisan terbaca di atas avatar */
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(8px);
-    z-index: 2; /* Di atas avatar */
+    margin: 0;
+    border-radius: 28px 28px 0 0;
+    /* Gradasi agar teks tetap terbaca meskipun di depan avatar */
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.98) 30%,
+      rgba(255, 255, 255, 0.85) 100%
+    );
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 2;
     border: none;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
   }
 
   .chat-bubble-area {
-    padding: 20px 15px; /* Padding chat lebih kecil */
+    padding: 20px 15px 100px 15px; /* Bottom padding ekstra untuk area input */
   }
 
   .message {
-    max-width: 85%; /* Bubble lebih lebar di HP */
+    max-width: 90%;
     font-size: 0.95rem;
+    line-height: 1.5;
   }
 
-  /* 5. INPUT BAR */
+  /* 5. INPUT BAR (FIXED BOTTOM) */
   .input-bar {
-    padding: 15px;
-    min-height: 80px;
-    background: white; /* Background putih solid di HP */
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px 15px calc(15px + env(safe-area-inset-bottom));
+    background: white;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+    z-index: 10;
   }
 
   .pill-input {
-    height: 48px; /* Sedikit lebih kecil */
+    height: 50px;
+    background: #f1f5f9;
+  }
+
+  .pill-input input {
+    font-size: 16px; /* Mencegah auto-zoom paksa pada iPhone */
   }
 
   #dynamicBtn {
-    width: 48px;
-    height: 48px;
-    font-size: 1.2rem;
+    width: 50px;
+    height: 50px;
+    font-size: 1.3rem;
+  }
+
+  /* 6. SESSION TIMER MOBILE ADJUSTMENT */
+  .session-timer {
+    bottom: auto;
+    top: 100px;
+    right: 15px;
+    left: 15px;
+    padding: 10px;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.9);
   }
 }
