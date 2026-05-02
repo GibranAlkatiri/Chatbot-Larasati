@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 class Config:
 
@@ -27,8 +29,8 @@ class Config:
         "complex": os.getenv("COHERE_RERANK_MODEL"),
     }
 
-    DOCS_FOLDER = os.getenv("DOCS_FOLDER", "docs")
-    VECTOR_DB = os.getenv("VECTOR_DB", "vector_db")
+    DOCS_FOLDER = os.getenv("DOCS_FOLDER", os.path.join(BASE_DIR, "docs"))
+    VECTOR_DB = os.getenv("VECTOR_DB", os.path.join(BASE_DIR, "vector_db"))
 
     N8N_WEBHOOKS = {
         "simple": os.getenv("N8N_WEBHOOK_SIMPLE"),

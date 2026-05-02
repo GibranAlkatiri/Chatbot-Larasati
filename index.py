@@ -91,14 +91,6 @@ def extract_tables_as_block(pdf_document, file_path):
 # -------------------------------------------------
 
 def run_indexing():
-    print("Cleaning...")
-    if os.path.exists(Config.VECTOR_DB):
-        try:
-            shutil.rmtree(Config.VECTOR_DB)
-            print("Success.")
-        except Exception as e:
-            print(f"Error: {e}")
-
     print("Start Indexing...")
 
     # Init Client
