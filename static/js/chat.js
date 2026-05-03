@@ -24,6 +24,8 @@ export function initChat({
     scrollToBottom();
 
     try {
+      const safeSessionId = getSessionId() || "session_" + Date.now();
+
       const res = await fetch("/chat", {
         method: "POST",
         headers: {
@@ -32,7 +34,7 @@ export function initChat({
 
         body: JSON.stringify({
           question: text,
-          session_id: getSessionId(),
+          session_id: safeSessionId(),
         }),
       });
 

@@ -187,7 +187,7 @@ class RAGEngine:
 
         # MEDIUM → MiniLM
         if route == "medium":
-            print("MiniLM rerank")
+            print("Default rerank")
             return self.rerank_cohere(query, chunks)
 
         # COMPLEX → Cohere
@@ -236,8 +236,12 @@ class RAGEngine:
     def ask(self, question, session_id="default"):
         """Pipeline utama RAG"""
 
+        if not session_id:
+            session_id = "default_session"
+
         print("\n--- NEW QUESTION ---")
         print("QUESTION:", question)
+        print("SESSION ID:", session_id)
 
         # Cek dulu apakah collection punya data
         count = self.collection.count()
