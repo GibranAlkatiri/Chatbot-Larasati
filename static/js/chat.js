@@ -34,7 +34,7 @@ export function initChat({
 
         body: JSON.stringify({
           question: text,
-          session_id: safeSessionId(),
+          session_id: safeSessionId,
         }),
       });
 
